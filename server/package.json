@@ -1,0 +1,22 @@
+{
+  "name": "web-rtc-connector-client",
+  "version": "0.0.1",
+  "description": "Simple Web Rtc Connector ",
+  "private": true,
+  "main": "server.js",
+  "license": "MPL-2.0 License",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.2.2",
+    "socket.io": "^4.4.0",
+    "uuid": "^8.3.2",
+    "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
