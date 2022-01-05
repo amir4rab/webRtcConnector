@@ -1,11 +1,24 @@
 {
-  "name": "web-rtc-connector-client",
+  "name": "@amir4rab/web-rtc-connector-client",
   "version": "0.0.1",
   "description": "Simple Web Rtc Connector ",
   "main": "webRtcConnector.js",
-  "private": true,
   "license": "MPL-2.0 License",
   "dependencies": {
     "socket.io-client": "^4.4.0"
+  },
+  "bugs": {
+    "url": "https://github.com/amir4rab/webRtcConnector/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "branches": [
+      "master"
+    ]
+  },
+  "homepage": "https://github.com/amir4rab/webRtcConnector/tree/main/client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amir4rab/webRtcConnector.git"
   }
 }
