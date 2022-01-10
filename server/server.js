@@ -35,7 +35,11 @@ io.on('connection', async socket => {
 
   socket.on('message', message => {
     const recipientSocketId = getSocketId(message.recipientId, activeUsers);
-    console.log(message.data.messageType);
     socket.to(recipientSocketId).emit('message', { ...message.data, from: activeUsers.get(socket.id)});
+  })
+
+  socket.on('keyExchange', message => {
+    const recipientSocketId = getSocketId(message.recipientId, activeUsers);
+    socket.to(recipientSocketId).emit('keyExchange', { ...message.data, from: activeUsers.get(socket.id)});
   })
 });
