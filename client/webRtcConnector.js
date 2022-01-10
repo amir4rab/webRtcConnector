@@ -220,8 +220,20 @@ class WebRtc {
   };
 
   makeMediaConnection = async ( mediaStream, peerId ) => {
-    this.#setupMediaConnection(mediaStream);
-    this.#connect(peerId);
+    await this.#generateKey();
+
+    this.socket.emit('keyExchange', {
+      recipientId: peerId,
+      data: {
+        messageType: 'offer',
+        data: this.selfKeyObj.publicKey,
+      }
+    })
+
+    this.#internalEvents.afterKeyExchange = async () => {
+      this.#setupMediaConnection(mediaStream);
+      this.#connect(peerId);
+    }
   };
 
   answerMediaConnection = async ( mediaStream ) => {
