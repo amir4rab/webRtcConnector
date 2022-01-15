@@ -1,6 +1,10 @@
 import { io } from 'socket.io-client';
+import EventEmitter from 'events';
 
-import { rsaDecrypt, rsaEncrypt, rsaGenerateKey } from './utils/rsaMethods';
+import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './crypto/crypto';
+import generateRandomHexValue from './utils/generateRandomHexValue';
+
+
 
 const rtcConfiguration = { 
   iceServers: [
@@ -14,17 +18,19 @@ const rtcConfiguration = {
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
 
 class WebRtc {
-  #internalEvents;
+  #acceptKey;
+  #sharedSecret;
+  #internalEventEmitter;
   constructor({ serverUrl ,connectionEvent = null, onPeerConnection= null }){
-
     this.id = null;
+    this.#acceptKey = generateRandomHexValue(16);
     this.recipientId = null;
     this.initialized = null;
     this.negotiationStarter = false;
 
     this.peerConnection = new RTCPeerConnection(rtcConfiguration);
-    this.events = {};
-    this.#internalEvents = {};
+    this.eventEmitter = new EventEmitter();
+    this.#internalEventEmitter = new EventEmitter();
 
     this.socket = io(serverUrl);
     this.isConnected = false;
@@ -36,13 +42,14 @@ class WebRtc {
 
     this.selfKeyObj = null;
     this.peerPublicKey = null;
+    this.#sharedSecret = null;
     this.doubleRatchet = null;
 
     this.socket.on( 'connection', ({ id }) => {
       this.id = id
       this.isConnected = true;
-      if ( connectionEvent !== null ) connectionEvent(id);
-      if ( typeof this.events.onConnection !== 'undefined' ) this.events.onConnection(id);
+      if ( connectionEvent !== null ) connectionEvent({ id, secret: this.#acceptKey });
+      this.eventEmitter.emit('onConnection', ({ id, secret: this.#acceptKey }))
     })
 
     this.socket.on( 'keyExchange', async ({ messageType, data, from }) => {
@@ -52,6 +59,7 @@ class WebRtc {
 
           this.peerPublicKey = data;
           await this.#generateKey();
+          this.#sharedSecret = await ecdhSecretKey(this.selfKeyObj.privateKey, this.peerPublicKey);
 
           this.socket.emit('keyExchange', {
             recipientId: from,
@@ -65,18 +73,19 @@ class WebRtc {
         }
         case 'answer': {
           this.peerPublicKey = data;
-          this.#afterKeyExchange();
+          this.#sharedSecret = await ecdhSecretKey(this.selfKeyObj.privateKey, this.peerPublicKey);
 
+          this.#afterKeyExchange();
           break;
         }
       }
     });
 
-    this.socket.on( 'message', async ({ messageType, data, enData = null, from }) => {
+    this.socket.on( 'message', async ({ encryptedData= null, from }) => {
+      if ( encryptedData === null ) return;
 
-      const { cryptoText, encryptionIv, wrappedMessageKey } = JSON.parse(enData);
-      const deData = await rsaDecrypt( cryptoText, encryptionIv, wrappedMessageKey, this.selfKeyObj.privateKey)
-      const deDataJson = JSON.parse(deData);
+      const deData = await aesDecrypt(encryptedData, this.#sharedSecret);
+      const { data: dataObj, secret: communicationKey, messageType } = JSON.parse(deData)
 
       switch( messageType ){
         case 'answer': {
@@ -85,19 +94,20 @@ class WebRtc {
             return;
           };
 
-          const remoteDesc = new RTCSessionDescription(deDataJson);
+          const remoteDesc = new RTCSessionDescription(dataObj);
           await this.peerConnection.setRemoteDescription(remoteDesc);
           console.log('"Remote" description has been configured!');
 
-          if ( typeof this.#internalEvents.afterDescription !== 'undefined' ) this.#internalEvents.afterDescription();
+          this.#internalEventEmitter.emit('afterDescription', null);
           this.logDescriptions();
           break;
         }
         case 'offer': {
+          if ( communicationKey !== this.#acceptKey ) return;
           this.recipientId = from;
-          if ( typeof this.events.onConnectionToRecipient !== 'undefined' ) this.events.onConnectionToRecipient(from);
+          this.eventEmitter.emit('onConnectionToRecipient', from);
 
-          await this.peerConnection.setRemoteDescription(new RTCSessionDescription(deDataJson));
+          await this.peerConnection.setRemoteDescription(new RTCSessionDescription(dataObj));
           console.log('"Remote" description has been configured!');
 
           const answer = await this.peerConnection.createAnswer();
@@ -105,15 +115,14 @@ class WebRtc {
           console.log('"Local" description has been configured!');
           this.logDescriptions();
 
-          console.log(JSON.stringify(answer));
-          const enAnswer = await rsaEncrypt(JSON.stringify(answer), this.peerPublicKey)
+          const encryptedData = await aesEncrypt({
+            messageType: 'answer',
+            data: answer,
+          }, this.#sharedSecret )
 
           this.socket.emit('message', {
             recipientId: from,
-            data: {
-              messageType: 'answer',
-              enData: JSON.stringify(enAnswer)
-            }
+            encryptedData
           })
           break;
         }
@@ -123,7 +132,7 @@ class WebRtc {
             return;
           };
           try {
-            await this.peerConnection.addIceCandidate(deDataJson);
+            await this.peerConnection.addIceCandidate(dataObj);
           } catch(e) {
             console.error('Error adding received ice candidate', e);
           }
@@ -135,14 +144,14 @@ class WebRtc {
     //** Ice Candidates Event **// 
     this.peerConnection.onicecandidate = async (event) => {
       if ( event.candidate ) {
-        const enData = await rsaEncrypt(JSON.stringify(event.candidate), this.peerPublicKey);
+        const encryptedData = await aesEncrypt({
+          messageType: 'new-ice-candidate',
+          data: event.candidate
+        }, this.#sharedSecret);
 
         if( this.recipientId !== null ) this.socket.emit('message', {
           recipientId: this.recipientId,
-          data: {
-            messageType: 'new-ice-candidate',
-            enData: JSON.stringify(enData)
-          }
+          encryptedData
         })
       }
     };
@@ -156,10 +165,10 @@ class WebRtc {
     this.peerConnection.addEventListener( 'iceconnectionstatechange', _ => {
       if( this.peerConnection.iceConnectionState === 'disconnected' ) { //** gets called when connection has been closed **//
         console.error('Connection has been closed!');
-        if ( typeof this.events.onClose !== 'undefined' ) this.events.onClose();
+        this.eventEmitter.emit('onClose', null);
       } else if ( this.peerConnection.iceConnectionState === 'failed' ) { //** gets called when something went wrong **//
-        console.error('Something went wrong!')
-        if ( typeof this.events.onError !== 'undefined' ) this.events.onError();
+        console.error('Something went wrong!');
+        this.eventEmitter.emit('onError', null);
       };
     }, false);
 
@@ -174,52 +183,51 @@ class WebRtc {
     this.peerConnection.addEventListener( 'track', async (event) => {
       const [remoteStream] = event.streams;
       this.remoteStream = remoteStream;
-      if( typeof this.events.onStream !== 'undefined' ) this.events.onStream(remoteStream);
+      this.eventEmitter.emit('onStream', remoteStream);
     }, false);
     
   };
 
   #generateKey = async _ => {
-    this.selfKeyObj = await rsaGenerateKey();
+    this.selfKeyObj = await ecdhGenerateKey();
   };
 
   #afterKeyExchange = async _ => {
-    if ( typeof this.#internalEvents.afterKeyExchange !== 'undefined' ) this.#internalEvents.afterKeyExchange();
+    this.#internalEventEmitter.emit( 'afterKeyExchange', null );
   };
 
   on = (event, eventHandler) => {
-    this.events[event] = eventHandler;
+    this.eventEmitter.on(event, eventHandler);
   };
 
-  #connect = async ( peerId ) => {
+  #connect = async ( peerId, secret ) => {
     if ( !this.isConnected ) {
       throw Error(`socket isn't connected to the server!`);
     }
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
     console.log('"Local" description has been configured!');
-    console.log(`local description: `, offer);
 
-    const enData = await rsaEncrypt(JSON.stringify(offer), this.peerPublicKey);
+    const encryptedData = await aesEncrypt({
+        messageType: 'offer',
+        data: offer,
+        secret: secret
+    }, this.#sharedSecret);
 
     this.negotiationStarter = true;
     this.socket.emit('message', {
       recipientId: peerId,
-      data: {
-        messageType: 'offer',
-        enData: JSON.stringify(enData)
-      }
+      encryptedData
     })
   };
 
   #setupMediaConnection = ( mediaStream ) => {
-    console.log(mediaStream);
     mediaStream.getTracks().forEach(track => {
       this.peerConnection.addTrack(track, mediaStream);
     });
   };
 
-  makeMediaConnection = async ( mediaStream, peerId ) => {
+  makeMediaConnection = async ( mediaStream, { id: peerId, secret } ) => {
     await this.#generateKey();
 
     this.socket.emit('keyExchange', {
@@ -230,10 +238,10 @@ class WebRtc {
       }
     })
 
-    this.#internalEvents.afterKeyExchange = async () => {
-      this.#setupMediaConnection(mediaStream);
-      this.#connect(peerId);
-    }
+    this.#internalEventEmitter.on('afterKeyExchange', async _ => {
+      this.#setupMediaConnection( mediaStream );
+      this.#connect( peerId, secret );
+    })
   };
 
   answerMediaConnection = async ( mediaStream ) => {
@@ -242,22 +250,17 @@ class WebRtc {
 
   #onDataChannelOpenEvent = async () => {
     this.dataChannelState = 'open'
-    if ( typeof this.events.onDataChannel !== 'undefined' ) this.events.onDataChannel(this.dataChannel);
-    if ( typeof this.events.onMessage !== 'undefined' ) {
-      this.dataChannel.onmessage = async message => {
-        const { cryptoText, encryptionIv, wrappedMessageKey } = JSON.parse(message.data);
-        const decryptedMessage = await rsaDecrypt(
-          cryptoText, 
-          encryptionIv, 
-          wrappedMessageKey, 
-          this.selfKeyObj.privateKey
-        )
-        this.events.onMessage(decryptedMessage)
-      };
+    this.eventEmitter.emit('onDataChannel', this.dataChannel);
+    this.dataChannel.onmessage = async message => {
+      const decryptedMessage = await aesDecrypt(
+        message.data,
+        this.#sharedSecret
+      )
+      this.eventEmitter.emit( 'onMessage', decryptedMessage );
     };
   };
 
-  dataConnection = async ( peerId ) => {
+  dataConnection = async ( { id: peerId, secret } ) => {
     await this.#generateKey();
 
     this.socket.emit('keyExchange', {
@@ -269,15 +272,15 @@ class WebRtc {
     
     })
 
-    this.#internalEvents.afterKeyExchange = async () => {
+    this.#internalEventEmitter.on('afterKeyExchange', async _ => {
       this.dataChannel = this.peerConnection.createDataChannel('messageDataChannel');
       console.log(`Data channel has been created!`);
   
       this.dataChannel.onopen = this.#onDataChannelOpenEvent;
   
       this.dataChannel.onclose = _ => this.dataChannelState = 'close';
-      await this.#connect(peerId);
-    }
+      await this.#connect(peerId, secret);
+    });
   };
 
   generateWebrtcHash = async ( hashMethod= 'SHA-256' ) => {
@@ -327,17 +330,13 @@ class WebRtc {
       remoteSdp: this.peerConnection.currentRemoteDescription.sdp,
       negotiationStarter: this.negotiationStarter
     };
-    if ( typeof this.events.descriptionsCompleted !== 'undefined' ) this.events.descriptionsCompleted(descriptions)
-  };
-
-  logDetails = async _ => {
-    console.log(this.peerConnection.RTCCertificate)
+    this.eventEmitter.emit('descriptionsCompleted', descriptions);
   };
 
   sendMessage = data => new Promise( async ( resolve, reject ) => {
     try {
-      const encryptedMessage = await rsaEncrypt(data, this.peerPublicKey);
-      this.dataChannel.send(JSON.stringify(encryptedMessage))
+      const encryptedMessage = await aesEncrypt(data, this.#sharedSecret);
+      this.dataChannel.send(encryptedMessage)
       resolve('successful')
     } catch(err) {
       reject('some thing went wrong!', err);
