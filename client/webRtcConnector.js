@@ -1,8 +1,8 @@
 import { io } from 'socket.io-client';
 import EventEmitter from 'events';
 
-import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './crypto/crypto';
-import generateRandomHexValue from './utils/generateRandomHexValue';
+import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto.js';
+import generateRandomHexValue from './utils/generateRandomHexValue.js';
 
 
 
