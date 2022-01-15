@@ -1,6 +1,6 @@
 {
   "name": "@amir4rab/web-rtc-connector-client",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Simple Web Rtc Connector ",
   "main": "webRtcConnector.js",
   "license": "MPL-2.0 License",
