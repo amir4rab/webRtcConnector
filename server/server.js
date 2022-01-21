@@ -1,6 +1,7 @@
 require('dotenv').config();
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4, validate: validateUuidv4 } = require('uuid');
 const getSocketId = require('./utils/getSocketId');
+const verifyInput = require('./utils/verifyInput');
 
 const io = require('socket.io')(process.env.PORT, {  
   cors: {    
@@ -28,18 +29,30 @@ io.on('connection', async socket => {
   console.log(`${socket.id} has been connected as "${userId}"!`);
 
   socket.on('disconnect', _ => {
-    activeUsers.delete(socket.id);
+    activeUsers.delete(socket.id); 
   });
 
   socket.emit('connection', { id: userId })
 
-  socket.on('message', message => {
-    const recipientSocketId = getSocketId(message.recipientId, activeUsers);
-    socket.to(recipientSocketId).emit('message', { ...message.data, from: activeUsers.get(socket.id)});
+  socket.on('message', ( message, callback ) => {
+    if ( !verifyInput(message.encryptedData) || !validateUuidv4(message.recipientId) )  {
+      console.log('False inputs');
+      callback && callback({ status: 'failed', reason: 'false input' });
+    } else {
+      const recipientSocketId = getSocketId(message.recipientId, activeUsers);
+      socket.to(recipientSocketId).emit('message', { encryptedData: message.encryptedData, from: activeUsers.get(socket.id)});
+      callback && callback({ status: 'sucessful', reason: null });
+    }
   })
 
-  socket.on('keyExchange', message => {
-    const recipientSocketId = getSocketId(message.recipientId, activeUsers);
-    socket.to(recipientSocketId).emit('keyExchange', { ...message.data, from: activeUsers.get(socket.id)});
+  socket.on('keyExchange', ( message, callback ) => {
+    if ( !verifyInput(message.data) || !validateUuidv4(message.recipientId) )  {
+      console.log('False inputs');
+      callback && callback({ status: 'failed', reason: 'false input' });
+    } else {
+      const recipientSocketId = getSocketId(message.recipientId, activeUsers);
+      socket.to(recipientSocketId).emit('keyExchange', { data: message.data, from: activeUsers.get(socket.id)});
+      callback && callback({ status: 'sucessful', reason: null });
+    }
   })
 });
