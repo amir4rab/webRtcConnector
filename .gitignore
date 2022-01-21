@@ -31,3 +31,14 @@ server/.gitignore
 
 #eslimtrc
 client/.eslintrc.json
+
+#client example
+client/example/.gitignore
+client/example/node_modules
+client/example/.DS_Store
+client/example/dist
+client/example/dist-ssr
+client/example/*.local
+
+server/package-lock.json
+client/example/package-lock.json
