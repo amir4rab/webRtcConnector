@@ -21,6 +21,7 @@ export default function Home({ content }) {
       <Head>
         <title>WebRtc Connector Client</title>
         <meta name="description" content="WebRtc Connector Client" />
+        <link rel="icon" href="/favicon.svg" />
       </Head>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
