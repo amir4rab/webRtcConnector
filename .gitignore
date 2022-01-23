@@ -42,3 +42,12 @@ client/example/*.local
 
 server/package-lock.json
 client/example/package-lock.json
+
+#doc
+doc/node_modules
+doc/.DS_Store
+doc/dist
+doc/dist-ssr
+doc/*.local
+doc/.gitignore
+package-lock.json
