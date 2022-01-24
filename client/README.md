@@ -22,7 +22,6 @@ webRtc.on( "onConnection", ({ id, secret }) => {
 ``` 
 
 ### WebRtc Data-channel: 
-
 #### Making a data-channel
 ```javascript
 webRtc.dataConnection({ 
@@ -42,7 +41,6 @@ webRtc.on( 'onMessage', message => {
   // "onMessage" will be called, when receiving a message from WebRtc Peer
 });
 ```
-
 #### Sending message
 ```javascript
 // this function should only be called after Data-channel has been initialization
@@ -50,7 +48,6 @@ webRtc.sendMessage('your message');
 ```
 
 ### WebRtc Media Connection:
-
 #### Answering call
 For Media connection, first pair need to be ready to answer calls
 ```javascript
@@ -85,8 +82,14 @@ const updateMedia = async _ => {
 }
 ```
 
-### Global Events
+### Functions:
 
+#### Closing Connection
+```javascript
+await webRtc.close();
+```
+
+### Events:
 #### Checking Call Security
 ```javascript
 webRtc.on( 'descriptionsCompleted', async ({ hashObj }) => {
@@ -94,14 +97,12 @@ webRtc.on( 'descriptionsCompleted', async ({ hashObj }) => {
   // to users can check if their hashes are equal
 });
 ```
-
 #### Call-end event
 ```javascript
 webRtc.on( 'onClose', _ => {
   // "onClose" will be called when connection has been closed!
 });
 ```
-
 #### Error event
 ```javascript
 webRtc.on( 'onError', _ => {

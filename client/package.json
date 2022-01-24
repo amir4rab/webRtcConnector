@@ -1,6 +1,6 @@
 {
   "name": "@amir4rab/web-rtc-connector-client",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Simple Web Rtc Connector",
   "main": "webRtcConnector.js",

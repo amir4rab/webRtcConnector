@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <div id="reloadPage" style="display: none;">
+    <div id="reloadPage" style="display: none;"> <!-- disconnected page -->
       <h1>
         Connection has been closed
       </h1>
@@ -17,9 +17,6 @@
       <h1>
         Web Rtc Connector
       </h1>
-      <button id="logDescriptions">
-        logDescriptions
-      </button>
       <div class="self">
         <h4>Your Info</h4>
         <div class="inputBox">
@@ -53,7 +50,7 @@
           </button>
         </div>
       </div>
-      <div class="dataChanelBox" id="dataChanelBox">
+      <div class="dataChanelBox" id="dataChanelBox"> <!-- elements for data channel connection -->
         <div class="inputBox">
           <label for="inBox">In box</label>
           <input id="inBox" type="text" readonly>
@@ -64,7 +61,7 @@
           <button id="sendMessage">Send</button>
         </div>
       </div>
-      <div id="streamsBox">
+      <div id="streamsBox"> <!-- elements for media stream connection -->
         <div class="videosBox"> 
           <div class="videoWrapper">
             <p>Self Video</p>
@@ -86,6 +83,14 @@
             audio only
           </button>
         </div>
+      </div>
+      <div id="afterConnectionBox">
+        <button id="closeConnection">
+          Close connection
+        </button>
+        <button id="logDescriptions">
+          Log descriptions
+        </button>
       </div>
     </div>
     <script type="module" src="/main.js" defer></script>

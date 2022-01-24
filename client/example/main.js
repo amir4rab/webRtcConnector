@@ -9,6 +9,10 @@ const displayReloadPage = _ => {
   document.getElementById('reloadPage').style='display: block';
 };
 
+const displayAfterConnectionControls = _ => {
+  document.getElementById('afterConnectionBox').style = 'display: block'
+}
+
 
 //** global query selectors **// 
 const selfId = document.getElementById('selfId');
@@ -34,7 +38,6 @@ peerVideo.onloadeddata = _ => {
 };
 
 let dataChannelRef;
-let afterConnectionEvent = null;
 
 const webRtc = new WebRtc({ serverUrl: 'http://localhost:5001' });
 
@@ -57,6 +60,7 @@ webRtc.on('onStream', remoteStream => {
 });
 
 webRtc.on('descriptionsCompleted', async ({ hashObj }) => {
+  displayAfterConnectionControls();
   console.log(hashObj.hash)
 });
 
@@ -213,4 +217,9 @@ const cameraOn = async () => {
 }
 document.getElementById('cameraOn').addEventListener('click', cameraOn);
 
-document.getElementById('logDescriptions').addEventListener('click', webRtc.logDescriptions)
+document.getElementById('logDescriptions').addEventListener('click', webRtc.logDescriptions);
+
+document.getElementById('closeConnection').addEventListener('click', async _ => {
+  await webRtc.close();
+  displayReloadPage();
+})

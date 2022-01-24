@@ -408,6 +408,11 @@ class WebRtc {
       reject('some thing went wrong!', err);
     }
   });
+
+  close = async _ => {
+    this.socket.disconnect();
+    this.peerConnection.close();
+  }
 }
 
 export default WebRtc;

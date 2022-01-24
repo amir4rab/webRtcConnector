@@ -77,3 +77,6 @@ input:read-only {
 .streamActions button:not(:last-child), .actions button:not(:last-child)  {
   margin-right: 0.5rem;
 }
+#afterConnectionBox {
+  display: none;
+}
