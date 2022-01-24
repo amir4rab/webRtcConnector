@@ -14,7 +14,7 @@ const webRtc = new WebRtc({ serverUrl: 'your signaling server url' });
 ```
 
 ### Getting WebRtc instance Details:
-your id is exposed to the server. your secret isn't exposed to server and has been generated automatically by the client. you should send this to items to the person you want to connect to.
+your id is exposed to the server but secret isn't, and it has been generated automatically by the client. you should send these two items to the other peer.
 ```javascript
 webRtc.on( "onConnection", ({ id, secret }) => {
   console.log(id, secret)
