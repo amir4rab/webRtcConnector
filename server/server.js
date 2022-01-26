@@ -1,20 +1,22 @@
 require('dotenv').config();
+
+const { createServer } = require("http");
+const { Server } = require('socket.io');
+
 const { v4: uuidv4, validate: validateUuidv4 } = require('uuid');
 const getSocketId = require('./utils/getSocketId');
 const verifyInput = require('./utils/verifyInput');
 
-const io = require('socket.io')(process.env.PORT, {  
+const httpServer = createServer();
+const io = new Server( httpServer, {  
   cors: {    
-    origin: "http://localhost:3000",   
+    origin: process.env.ORIGIN || 3000,   
     methods: ["GET", "POST"]  
-  },
-  allowRequest: (req, callback) => {
-    callback(null, req);  
   }
 });
 
 const activeUsers = new Map();
-console.log(`Sockets.io server is live at http://localhost:${process.env.PORT}`);
+console.log(`Sockets.io server is live at http://localhost:${ process.env.PORT || 5000 }`);
 
 
 io.on('connection', async socket => { 
@@ -26,7 +28,7 @@ io.on('connection', async socket => {
     socket.disconnect(true);
     return;
   };
-  console.log(`${socket.id} has been connected as "${userId}"!`);
+  console.log(`${ socket.id } has been connected as "${ userId }"!`);
 
   socket.on('disconnect', _ => {
     activeUsers.delete(socket.id); 
@@ -56,3 +58,5 @@ io.on('connection', async socket => {
     }
   })
 });
+
+httpServer.listen( process.env.PORT || 5000 );

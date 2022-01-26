@@ -1,8 +1,29 @@
 # WebRtcConnector Server
 
-## Warning:
-**This project have'nt been audited by security researchers, therefore please don't use it in Production environment**
+### <p class="warning">Waring: This project hasn't been audited by security researchers, therefore please don't use it in Production environment<p>
 
-WebRtcConnector is a simple connector for p2p connection throw WebRtc Standard, Signaling made available with [WebRtcConnector-client](https://github.com/amir4rab/webRtcConnector/tree/main/client). [socket.io](https://socket.io) has been used in booth server and client of this project.
 
-Readme will be completed soon.
+WebRtcConnector Signaling server is, a [socket.io](https://socket.io) server, modify it for your use case.
+
+### Setup
+#### cloning
+```bash
+git clone https://github.com/amir4rab/webRtcConnector && cd ./server
+```
+#### installing dependencies
+```bash
+npm install
+```
+#### making environment variables
+make .env file and add these two variables to it
+```
+PORT: 'Port for your signaling server'
+ORIGIN: 'Origin of your webapp'
+```
+
+
+
+## Learn more
+
+- [socket.io](https://socket.io) 
+- [WebRtcConnectorClient](../client/README.md) 

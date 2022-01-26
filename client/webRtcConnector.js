@@ -121,7 +121,6 @@ class WebRtc {
           console.log('"Remote" description has been configured!');
 
           this.#internalEventEmitter.emit('afterDescription', null);
-          this.logDescriptions();
           break;
         }
         case 'offer': {
@@ -131,14 +130,12 @@ class WebRtc {
           this.#recipientSecret = peerSecret;
           this.peerBrowser = browser;
 
-          console.log(dataObj);
           await this.peerConnection.setRemoteDescription(new RTCSessionDescription(dataObj));
           console.log('"Remote" description has been configured!');
 
           const answer = await this.peerConnection.createAnswer();
           await this.peerConnection.setLocalDescription(answer);
           console.log('"Local" description has been configured!');
-          this.logDescriptions();
 
           const encryptedData = await aesEncrypt({
             messageType: 'answer',
@@ -242,11 +239,11 @@ class WebRtc {
     console.log('"Local" description has been configured!');
 
     const encryptedData = await aesEncrypt({
-        messageType: 'offer',
-        data: offer,
-        secret: secret,
-        peerSecret: this.#acceptKey,
-        browser: adapter.browserDetails
+      messageType: 'offer',
+      data: offer,
+      secret: secret,
+      peerSecret: this.#acceptKey,
+      browser: adapter.browserDetails
     }, this.#sharedSecret);
 
     this.negotiationStarter = true;
