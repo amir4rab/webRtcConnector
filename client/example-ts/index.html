@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Rtc Connector</title>
+    <link rel="stylesheet" href="./src/style.css">
+  </head>
+  <body>
+    <div id="reloadPage" style="display: none;"> <!-- disconnected page -->
+      <h1>
+        Connection has been closed
+      </h1>
+      <button id="reloadButton">Click here to reload</button>
+    </div>
+    <div id="activePage">
+      <h1>
+        Web Rtc Connector - Ts example
+      </h1>
+      <div class="self">
+        <h4>Your Info</h4>
+        <div class="inputBox">
+          <label for="selfId">Id:</label>
+          <input id="selfId" readonly>
+        </div>
+        <div class="inputBox">
+          <label for="selfSecret">Secret:</label>
+          <input id="selfSecret" readonly>
+        </div>
+      </div>
+      <div class="recipientInputs"  id="recipientInputsBox">
+        <h4>Your Peer Info</h4>
+        <div class="inputBox">
+          <label for="peerId">Id:</label>
+          <input id="peerId">
+        </div>
+        <div class="inputBox">
+          <label for="peerSecret">Secret:</label>
+          <input id="peerSecret">
+        </div>
+        <div class="actions">
+          <button id="makeDataChannel">
+            Make Data channel
+          </button>
+          <button id="answerCall">
+            Answer Call
+          </button>
+          <button id="makeCall">
+            Call
+          </button>
+        </div>
+      </div>
+      <div class="dataChanelBox" id="dataChanelBox"> <!-- elements for data channel connection -->
+        <div class="inputBox">
+          <label for="inBox">In box</label>
+          <input id="inBox" type="text" readonly>
+        </div>
+        <div class="messageSender">
+          <label for="messageInput">Message</label>
+          <input id="messageInput" type="text">
+          <button id="sendMessage">Send</button>
+        </div>
+      </div>
+      <div id="streamsBox"> <!-- elements for media stream connection -->
+        <div class="videosBox"> 
+          <div class="videoWrapper">
+            <p>Self Video</p>
+            <video id="selfVideo" muted />
+          </div>
+          <div class="videoWrapper">
+            <p>Peer Video</p>
+            <video id="peerVideo" />
+          </div>
+        </div>
+        <div class="streamActions">
+          <button id="cameraOn">
+            turn camera on
+          </button>
+          <button id="displayOn">
+            turn display on
+          </button>
+          <button id="audioOnly">
+            audio only
+          </button>
+        </div>
+      </div>
+      <div id="afterConnectionBox">
+        <button id="closeConnection">
+          Close connection
+        </button>
+        <button id="logDescriptions">
+          Log descriptions
+        </button>
+      </div>
+    </div>
+    <script type="module" src="src/main.ts" defer></script>
+  </body>
+</html>
