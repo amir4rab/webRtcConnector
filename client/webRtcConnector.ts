@@ -15,6 +15,8 @@ const rtcConfiguration = {
 
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
 
+// Cannot find module 'socket.io-client'. Did you mean to set the 'moduleResolution' option to 'node', or to add aliases to the 'paths' option?
+
 class WebRtc {
   #acceptKey: string;
   #sharedSecret: string | null;
@@ -63,14 +65,14 @@ class WebRtc {
 
     this.#currentMediaTracks = [];
 
-    this.socket.on( 'connection', ({ id }) => {
+    this.socket.on( 'connection', ({ id }:{ id: string }) => {
       this.id = id
       this.isConnected = true;
       if ( connectionEvent !== null ) connectionEvent({ id, secret: this.#acceptKey });
       this.eventEmitter.emit('onConnection', ({ id, secret: this.#acceptKey }))
     })
 
-    this.socket.on( 'keyExchange', async ({ data: keyExchangeData, from }) => {
+    this.socket.on( 'keyExchange', async ({ data: keyExchangeData, from }:{ data:string, from: string }) => {
       if ( typeof keyExchangeData !== 'string' ) {
         console.error('False information has been received from signaling Server!');
         return;
@@ -106,7 +108,7 @@ class WebRtc {
       }
     });
 
-    this.socket.on( 'message', async ({ encryptedData= null, from }) => {
+    this.socket.on( 'message', async ({ encryptedData= null, from }:{ encryptedData: null | string , from: string }) => {
       if ( typeof encryptedData !== 'string' ) {
         console.error('False information has been received from signaling Server!');
         return;
@@ -193,12 +195,12 @@ class WebRtc {
     };
 
     //** Connection State Event **// 
-    this.peerConnection.addEventListener( 'connectionstatechange', _ => {
+    this.peerConnection.addEventListener( 'connectionstatechange', () => {
       if (this.peerConnection.connectionState === 'connected') {
         if ( onPeerConnection !== null ) onPeerConnection(true);
       }
     }, false);
-    this.peerConnection.addEventListener( 'iceconnectionstatechange', _ => {
+    this.peerConnection.addEventListener( 'iceconnectionstatechange', () => {
       if( this.peerConnection.iceConnectionState === 'disconnected' ) { //** gets called when connection has been closed **//
         console.error('Connection has been closed!');
         this.eventEmitter.emit('onClose', null);
@@ -307,7 +309,7 @@ class WebRtc {
       })
     })
 
-    this.#internalEventEmitter.on('afterKeyExchange', async _ => {
+    this.#internalEventEmitter.on('afterKeyExchange', async () => {
       this.#setupMediaConnection( mediaStream );
       this.#connect( peerId, secret );
     })
@@ -340,13 +342,13 @@ class WebRtc {
       })
     })
 
-    this.#internalEventEmitter.on('afterKeyExchange', async _ => {
+    this.#internalEventEmitter.on('afterKeyExchange', async () => {
       this.dataChannel = this.peerConnection.createDataChannel('messageDataChannel');
       console.log(`Data channel has been created!`);
   
       this.dataChannel.onopen = this.#onDataChannelOpenEvent;
   
-      this.dataChannel.onclose = _ => this.dataChannelState = 'close';
+      this.dataChannel.onclose = () => this.dataChannelState = 'close';
       await this.#connect(peerId, secret);
     });
   };

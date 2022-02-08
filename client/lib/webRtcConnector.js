@@ -29,6 +29,7 @@ const rtcConfiguration = {
     iceCandidatePoolSize: 10,
 };
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
+// Cannot find module 'socket.io-client'. Did you mean to set the 'moduleResolution' option to 'node', or to add aliases to the 'paths' option?
 class WebRtc {
     constructor({ serverUrl, connectionEvent = null, onPeerConnection = null }) {
         _WebRtc_acceptKey.set(this, void 0);
@@ -105,7 +106,7 @@ class WebRtc {
                     data: this.selfKeyObj.publicKey,
                 })
             });
-            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async (_) => {
+            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
                 __classPrivateFieldGet(this, _WebRtc_setupMediaConnection, "f").call(this, mediaStream);
                 __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
             });
@@ -130,11 +131,11 @@ class WebRtc {
                     data: this.selfKeyObj.publicKey,
                 })
             });
-            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async (_) => {
+            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
                 this.dataChannel = this.peerConnection.createDataChannel('messageDataChannel');
                 console.log(`Data channel has been created!`);
                 this.dataChannel.onopen = __classPrivateFieldGet(this, _WebRtc_onDataChannelOpenEvent, "f");
-                this.dataChannel.onclose = _ => this.dataChannelState = 'close';
+                this.dataChannel.onclose = () => this.dataChannelState = 'close';
                 await __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
             });
         };
@@ -341,13 +342,13 @@ class WebRtc {
             }
         };
         //** Connection State Event **// 
-        this.peerConnection.addEventListener('connectionstatechange', _ => {
+        this.peerConnection.addEventListener('connectionstatechange', () => {
             if (this.peerConnection.connectionState === 'connected') {
                 if (onPeerConnection !== null)
                     onPeerConnection(true);
             }
         }, false);
-        this.peerConnection.addEventListener('iceconnectionstatechange', _ => {
+        this.peerConnection.addEventListener('iceconnectionstatechange', () => {
             if (this.peerConnection.iceConnectionState === 'disconnected') { //** gets called when connection has been closed **//
                 console.error('Connection has been closed!');
                 this.eventEmitter.emit('onClose', null);
