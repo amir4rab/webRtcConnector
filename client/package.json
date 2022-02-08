@@ -1,10 +1,10 @@
 {
   "name": "@amir4rab/web-rtc-connector-client",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "type": "module",
   "description": "Simple Web Rtc Connector",
-  "main": "webRtcConnector.ts",
-  "types": "webRtcConnector.d.ts",
+  "main": "./lib/webRtcConnector.js",
+  "types": "./lib/webRtcConnector.d.ts",
   "license": "MPL-2.0 License",
   "dependencies": {
     "@types/socket.io-client": "^3.0.0",
