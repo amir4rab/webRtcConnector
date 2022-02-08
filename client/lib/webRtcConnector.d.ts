@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io-client';
-import { EventEmitter, Listener } from 'events';
+import { EventManager } from './utils/eventManager';
 declare class WebRtc {
     #private;
     id: null | string;
@@ -13,7 +13,7 @@ declare class WebRtc {
         version: string;
     } | null;
     peerConnection: RTCPeerConnection;
-    eventEmitter: EventEmitter;
+    eventEmitter: EventManager;
     dataChannel: RTCDataChannel | null;
     dataChannelState: 'close' | 'open';
     remoteStream: MediaStream | null;
@@ -29,7 +29,7 @@ declare class WebRtc {
         connectionEvent: Function | null;
         onPeerConnection: Function | null;
     });
-    on: (event: string, eventHandler: Listener) => void;
+    on: (event: string, eventHandler: Function) => void;
     restartIce: () => Promise<void>;
     canUpdateMedia: () => boolean;
     updateMedia: (mediaStream: MediaStream) => Promise<boolean>;

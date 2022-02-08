@@ -11,7 +11,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _WebRtc_acceptKey, _WebRtc_sharedSecret, _WebRtc_internalEventEmitter, _WebRtc_currentMediaTracks, _WebRtc_recipientSecret, _WebRtc_generateKey, _WebRtc_afterKeyExchange, _WebRtc_connect, _WebRtc_setupMediaConnection, _WebRtc_onDataChannelOpenEvent;
 import { io } from 'socket.io-client';
-import { EventEmitter } from 'events';
+// import { EventEmitter, Listener } from 'events';
+import { EventManager } from './utils/eventManager';
 import adapter from 'webrtc-adapter';
 import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto';
 import generateRandomHexValue from './utils/generateRandomHexValue';
@@ -341,8 +342,8 @@ class WebRtc {
         this.isConnected = false;
         this.peerBrowser = null;
         this.peerConnection = new RTCPeerConnection(rtcConfiguration);
-        this.eventEmitter = new EventEmitter();
-        __classPrivateFieldSet(this, _WebRtc_internalEventEmitter, new EventEmitter(), "f");
+        this.eventEmitter = new EventManager();
+        __classPrivateFieldSet(this, _WebRtc_internalEventEmitter, new EventManager(), "f");
         this.dataChannel = null;
         this.dataChannelState = 'close';
         this.remoteStream = null;
@@ -414,7 +415,8 @@ class WebRtc {
                     const remoteDesc = new RTCSessionDescription(dataObj);
                     await this.peerConnection.setRemoteDescription(remoteDesc);
                     console.log('"Remote" description has been configured!');
-                    __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").emit('afterDescription', null);
+                    // this.#internalEventEmitter.emit('afterDescription', null);
+                    this.logDescriptions();
                     break;
                 }
                 case 'offer': {
@@ -435,6 +437,7 @@ class WebRtc {
                         secret: __classPrivateFieldGet(this, _WebRtc_recipientSecret, "f"),
                         browser: adapter.browserDetails,
                     }, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
+                    this.logDescriptions();
                     this.socket.emit('message', {
                         recipientId: this.recipientId,
                         encryptedData

@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { EventEmitter, Listener } from 'events';
+// import { EventEmitter, Listener } from 'events';
+import { EventManager } from './utils/eventManager';
 import adapter from 'webrtc-adapter';
 
 import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto';
@@ -18,7 +19,7 @@ const notInitWarn = () => console.warn('Received RTCSessionDescription before RT
 class WebRtc {
   #acceptKey: string;
   #sharedSecret: string | null;
-  #internalEventEmitter: EventEmitter;
+  #internalEventEmitter: EventManager;
   #currentMediaTracks: any[];
   #recipientSecret: null | string;
   id: null | string;
@@ -29,7 +30,7 @@ class WebRtc {
   isConnected: boolean;
   peerBrowser: { browser: string, version: string } | null;
   peerConnection: RTCPeerConnection;
-  eventEmitter: EventEmitter;
+  eventEmitter: EventManager;
   dataChannel: RTCDataChannel | null;
   dataChannelState: 'close' | 'open';
   remoteStream: MediaStream | null;
@@ -49,8 +50,8 @@ class WebRtc {
     this.peerBrowser = null;
 
     this.peerConnection = new RTCPeerConnection(rtcConfiguration);
-    this.eventEmitter = new EventEmitter();
-    this.#internalEventEmitter = new EventEmitter();
+    this.eventEmitter = new EventManager();
+    this.#internalEventEmitter = new EventManager();
 
     this.dataChannel = null;
     this.dataChannelState = 'close';
@@ -131,7 +132,8 @@ class WebRtc {
           await this.peerConnection.setRemoteDescription(remoteDesc);
           console.log('"Remote" description has been configured!');
 
-          this.#internalEventEmitter.emit('afterDescription', null);
+          // this.#internalEventEmitter.emit('afterDescription', null);
+          this.logDescriptions();
           break;
         }
         case 'offer': {
@@ -153,7 +155,9 @@ class WebRtc {
             data: answer,
             secret: this.#recipientSecret,
             browser: adapter.browserDetails,
-          }, this.#sharedSecret! )
+          }, this.#sharedSecret! );
+
+          this.logDescriptions();
 
           this.socket.emit('message', {
             recipientId: this.recipientId,
@@ -232,7 +236,7 @@ class WebRtc {
     this.#internalEventEmitter.emit( 'afterKeyExchange', null );
   };
 
-  on = ( event: string, eventHandler: Listener ): void => {
+  on = ( event: string, eventHandler: Function ): void => {
     this.eventEmitter.on(event, eventHandler);
   };
 

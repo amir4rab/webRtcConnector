@@ -1,7 +1,4 @@
 import WebRtc from '../lib/webRtcConnector';
-import adapter from 'webrtc-adapter';
-
-console.log(adapter);
 
 document.getElementById('reloadButton').addEventListener('click', _ => location.reload());
 const displayReloadPage = _ => {
