@@ -3,11 +3,10 @@ import { EventEmitter } from 'events';
 import { Listener } from 'events/index';
 
 // webrtc types
-declare type Nultring = null | string;
 declare class WebRtc {
     #private;
-    id: Nultring;
-    recipientId: Nultring;
+    id: null | string;
+    recipientId: null | string;
     keyExchangedEnded: boolean;
     negotiationStarter: boolean;
     socket: Socket;
@@ -48,8 +47,8 @@ declare class WebRtc {
     }) => Promise<void>;
     generateWebrtcHash: (hashMethod?: string) => Promise<{
         status: string;
-        hash: Nultring;
-        errorMessage: Nultring;
+        hash: null | string;
+        errorMessage: null | string;
     }>;
     logDescriptions: () => Promise<void>;
     sendMessage: (data: string) => Promise<string>;
