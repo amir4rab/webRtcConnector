@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRandomHexValue = void 0;
-const generateRandomHexValue = (length = 16) => {
+export const generateRandomHexValue = (length = 16) => {
     if (typeof length !== 'number') {
         console.error('Generate Random Hex only accepts Numbers as input!');
         return 'error';
@@ -14,5 +11,4 @@ const generateRandomHexValue = (length = 16) => {
     });
     return hashHex.join('').slice(0, length);
 };
-exports.generateRandomHexValue = generateRandomHexValue;
-exports.default = exports.generateRandomHexValue;
+export default generateRandomHexValue;

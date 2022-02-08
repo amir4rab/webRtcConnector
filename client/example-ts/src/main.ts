@@ -1,4 +1,4 @@
-import WebRtc from '../../webRtcConnector';
+import WebRtc from '../../lib/webRtcConnector';
 import adapter from 'webrtc-adapter';
 
 console.log(adapter);

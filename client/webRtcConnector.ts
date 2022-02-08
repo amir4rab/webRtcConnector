@@ -15,8 +15,6 @@ const rtcConfiguration = {
 
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
 
-// Cannot find module 'socket.io-client'. Did you mean to set the 'moduleResolution' option to 'node', or to add aliases to the 'paths' option?
-
 class WebRtc {
   #acceptKey: string;
   #sharedSecret: string | null;
