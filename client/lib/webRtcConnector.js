@@ -140,8 +140,7 @@ class WebRtc {
             });
         };
         this.generateWebrtcHash = async (hashMethod = 'SHA-256') => {
-            var _a, _b, _c, _d;
-            if (((_b = (_a = this.peerConnection) === null || _a === void 0 ? void 0 : _a.currentLocalDescription) === null || _b === void 0 ? void 0 : _b.sdp) === null || ((_d = (_c = this.peerConnection) === null || _c === void 0 ? void 0 : _c.currentRemoteDescription) === null || _d === void 0 ? void 0 : _d.sdp) === null) {
+            if (this.peerConnection?.currentLocalDescription?.sdp === null || this.peerConnection?.currentRemoteDescription?.sdp === null) {
                 return ({
                     status: 'error',
                     errorMessage: 'Values are not available!',
@@ -167,7 +166,7 @@ class WebRtc {
                     errorMessage: null
                 });
             }
-            catch (_e) {
+            catch {
                 return ({
                     status: 'error',
                     errorMessage: 'something went wrong on the hash digestion!',
@@ -191,7 +190,7 @@ class WebRtc {
                 this.dataChannel.send(encryptedMessage);
                 resolve('successful');
             }
-            catch (_a) {
+            catch {
                 reject('some thing went wrong!');
             }
         });
@@ -226,7 +225,6 @@ class WebRtc {
             this.eventEmitter.emit('onConnection', ({ id, secret: __classPrivateFieldGet(this, _WebRtc_acceptKey, "f") }));
         });
         this.socket.on('keyExchange', async ({ data: keyExchangeData, from }) => {
-            var _a;
             if (typeof keyExchangeData !== 'string') {
                 console.error('False information has been received from signaling Server!');
                 return;
@@ -244,7 +242,7 @@ class WebRtc {
                     this.socket.emit('keyExchange', {
                         recipientId: from,
                         data: JSON.stringify({
-                            data: (_a = this.selfKeyObj) === null || _a === void 0 ? void 0 : _a.publicKey,
+                            data: this.selfKeyObj?.publicKey,
                             messageType: 'answer',
                         })
                     });
