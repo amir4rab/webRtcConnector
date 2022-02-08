@@ -15,16 +15,14 @@ const rtcConfiguration = {
 
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
 
-type Nultring = null | string;
-
 class WebRtc {
   #acceptKey: string;
   #sharedSecret: string | null;
   #internalEventEmitter: EventEmitter;
   #currentMediaTracks: any[];
-  #recipientSecret: Nultring;
-  id: Nultring;
-  recipientId: Nultring;
+  #recipientSecret: null | string;
+  id: null | string;
+  recipientId: null | string;
   keyExchangedEnded: boolean;
   negotiationStarter: boolean;
   socket: Socket;
@@ -353,7 +351,7 @@ class WebRtc {
     });
   };
 
-  generateWebrtcHash = async ( hashMethod= 'SHA-256' ): Promise<{ status: string, hash: Nultring, errorMessage: Nultring }> => {
+  generateWebrtcHash = async ( hashMethod= 'SHA-256' ): Promise<{ status: string, hash: null | string, errorMessage: null | string }> => {
     if ( this.peerConnection?.currentLocalDescription?.sdp === null || this.peerConnection?.currentRemoteDescription?.sdp === null ) {
       return ({
         status: 'error',
