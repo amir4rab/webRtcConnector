@@ -16,7 +16,7 @@ npm install
 ```
 #### making environment variables
 make .env file and add these two variables to it
-```
+```bash
 PORT: 'Port for your signaling server'
 ORIGIN: 'Origin of your webapp'
 ```

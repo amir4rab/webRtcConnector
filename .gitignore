@@ -40,7 +40,7 @@ client/example/dist
 client/example/dist-ssr
 client/example/*.local
 
-server/package-lock.json
+# server/package-lock.json
 client/example/package-lock.json
 
 #doc
@@ -50,4 +50,4 @@ doc/dist
 doc/dist-ssr
 doc/*.local
 doc/.gitignore
-package-lock.json
+# package-lock.json
