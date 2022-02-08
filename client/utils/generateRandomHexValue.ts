@@ -1,10 +1,10 @@
-export const generateRandomHexValue = ( length = 16 ) => {
+export const generateRandomHexValue = ( length: number = 16 ): string => {
   if ( typeof length !== 'number' ) {
     console.error('Generate Random Hex only accepts Numbers as input!');
-    return;
+    return 'error';
   }
   const randomValueArr = new Uint16Array(Math.floor(length/2 < 128 ? length/2 : 128));
-  const hashHex = []; 
+  const hashHex: string[] = []; 
 
   crypto.getRandomValues(randomValueArr);
 

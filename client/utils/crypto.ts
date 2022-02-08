@@ -1,5 +1,4 @@
-export const str2ab = (str) => {
-  // if ( str === null ) return new Uint8Array(0)
+export const str2ab = ( str: string ): ArrayBuffer => {
   const buf = new ArrayBuffer(str.length);
   const bufView = new Uint8Array(buf);
   for (let i = 0, strLen = str.length; i < strLen; i++) {
@@ -8,12 +7,11 @@ export const str2ab = (str) => {
   return buf;
 };
 
-export const ab2str = (buf) => {
-  return String.fromCharCode.apply(null, new Uint8Array(buf));
+export const ab2str = ( buf: ArrayBuffer ): string => {
+  return String.fromCharCode.apply(null, [ ...new Uint8Array(buf) ]);
 };
 
-
-export const aesKeyGenerate = async () => {
+export const aesKeyGenerate = async (): Promise<{ key: string, keyFormat: string }> => {
   const keyPair = await crypto.subtle.generateKey(
     {
       name: "AES-GCM",
@@ -35,7 +33,7 @@ export const aesKeyGenerate = async () => {
   });
 };
 
-export const aesEncrypt = async ( data, secretKey ) => {
+export const aesEncrypt = async ( data: string | object, secretKey: string ): Promise< string > => {
   const inputData = typeof data === 'object' ? JSON.stringify(data) : data;
 
   const textEncoder = new TextEncoder();
@@ -72,7 +70,7 @@ export const aesEncrypt = async ( data, secretKey ) => {
   return result;
 };
 
-export const aesDecrypt = async ( encryptedDataString, secretKey ) => {
+export const aesDecrypt = async ( encryptedDataString: string, secretKey: string ): Promise< string > => {
   const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
 
   const textDecoder = new TextDecoder();
@@ -103,9 +101,9 @@ export const aesDecrypt = async ( encryptedDataString, secretKey ) => {
   );
 
   return textDecoder.decode(decryptedData);
-}
+};
 
-export const ecdhGenerateKey = async () => {
+export const ecdhGenerateKey = async (): Promise<{ publicKey: string, publicKeyFormat: string, privateKey: string, privateKeyFormat: string }> => {
   const keyPair = await crypto.subtle.generateKey(
     {
       name: "ECDH",
@@ -117,14 +115,14 @@ export const ecdhGenerateKey = async () => {
   
   const publicKey = await crypto.subtle.exportKey(
     'spki',
-    keyPair.publicKey,
+    keyPair.publicKey as CryptoKey,
   )
   const exportedAsString = ab2str(publicKey);
   const exportedAsBase64 = window.btoa(exportedAsString);
 
   const privateKey = await crypto.subtle.exportKey(
     'pkcs8',
-    keyPair.privateKey,
+    keyPair.privateKey as CryptoKey,
   )
   const exportedPrivateKeyAsString = ab2str(privateKey);
   const exportedPrivateKeyAsBase64 = window.btoa(exportedPrivateKeyAsString);
@@ -137,7 +135,7 @@ export const ecdhGenerateKey = async () => {
   });
 };
 
-export const ecdhSecretKey = async ( privateKey, publicKey ) => {
+export const ecdhSecretKey = async ( privateKey: string, publicKey: string ): Promise< string > => {
 
   const binaryPrivateKey = window.atob(privateKey);
   const privateKeyObj = await crypto.subtle.importKey(

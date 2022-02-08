@@ -4,7 +4,7 @@
 
 ### Installing npm [package](https://www.npmjs.com/package/@amir4rab/web-rtc-connector-client):
 ```bash
-npm install @amir4rab/web-rtc-connector-client
+npm install @amir4rab/web-rtc-connector-client@latest
 ```
 
 ### Instantiating an instance:
