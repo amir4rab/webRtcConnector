@@ -8,7 +8,12 @@ export const str2ab = ( str: string ): ArrayBuffer => {
 };
 
 export const ab2str = ( buf: ArrayBuffer ): string => {
-  return String.fromCharCode.apply(null, [ ...new Uint8Array(buf) ]);
+  const array = [...new Uint8Array(buf)];
+  let output = '';
+  for ( let i = 0; i < array.length; i = i + 64000 ) {
+    output = output + String.fromCharCode.apply(null, array.slice(i, i + 64000));
+  }
+  return output;
 };
 
 export const aesKeyGenerate = async (): Promise<{ key: string, keyFormat: string }> => {
@@ -28,7 +33,7 @@ export const aesKeyGenerate = async (): Promise<{ key: string, keyFormat: string
   );
   
   return ({
-    key: ab2str(key),
+    key: window.btoa(ab2str(key)),
     keyFormat: 'raw',
   });
 };

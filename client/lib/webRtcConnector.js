@@ -32,104 +32,15 @@ class WebRtc {
         _WebRtc_internalEventEmitter.set(this, void 0);
         _WebRtc_currentMediaTracks.set(this, void 0);
         _WebRtc_recipientSecret.set(this, void 0);
-        Object.defineProperty(this, "id", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "recipientId", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "keyExchangedEnded", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "negotiationStarter", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "socket", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "isConnected", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "peerBrowser", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "peerConnection", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "eventEmitter", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "dataChannel", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "dataChannelState", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "remoteStream", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "selfKeyObj", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "peerPublicKey", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         _WebRtc_generateKey.set(this, async () => {
             this.selfKeyObj = await ecdhGenerateKey();
         });
         _WebRtc_afterKeyExchange.set(this, async () => {
             __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").emit('afterKeyExchange', null);
         });
-        Object.defineProperty(this, "on", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: (event, eventHandler) => {
-                this.eventEmitter.on(event, eventHandler);
-            }
-        });
+        this.on = (event, eventHandler) => {
+            this.eventEmitter.on(event, eventHandler);
+        };
         _WebRtc_connect.set(this, async (peerId, secret) => {
             if (!this.isConnected) {
                 throw Error(`socket isn't connected to the server!`);
@@ -158,71 +69,46 @@ class WebRtc {
                 __classPrivateFieldGet(this, _WebRtc_currentMediaTracks, "f").push(sender);
             });
         });
-        Object.defineProperty(this, "restartIce", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async () => {
-                this.peerConnection.restartIce();
-                await __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, this.recipientId, __classPrivateFieldGet(this, _WebRtc_recipientSecret, "f"));
+        this.restartIce = async () => {
+            this.peerConnection.restartIce();
+            await __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, this.recipientId, __classPrivateFieldGet(this, _WebRtc_recipientSecret, "f"));
+        };
+        this.canUpdateMedia = () => {
+            return adapter.browserDetails.browser === this.peerBrowser.browser;
+        };
+        this.updateMedia = async (mediaStream) => {
+            if (!this.canUpdateMedia()) {
+                console.error('Cross browser media update is not possible!');
+                return false;
             }
-        });
-        Object.defineProperty(this, "canUpdateMedia", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: () => {
-                return adapter.browserDetails.browser === this.peerBrowser.browser;
-            }
-        });
-        Object.defineProperty(this, "updateMedia", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async (mediaStream) => {
-                if (!this.canUpdateMedia()) {
-                    console.error('Cross browser media update is not possible!');
-                    return false;
-                }
-                __classPrivateFieldGet(this, _WebRtc_currentMediaTracks, "f").forEach(track => {
-                    this.peerConnection.removeTrack(track);
-                });
-                __classPrivateFieldSet(this, _WebRtc_currentMediaTracks, [], "f");
-                mediaStream.getTracks().forEach(track => {
-                    const sender = this.peerConnection.addTrack(track, mediaStream);
-                    __classPrivateFieldGet(this, _WebRtc_currentMediaTracks, "f").push(sender);
-                });
-                await this.restartIce();
-                return true;
-            }
-        });
-        Object.defineProperty(this, "makeMediaConnection", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async (mediaStream, { id: peerId, secret }) => {
-                await __classPrivateFieldGet(this, _WebRtc_generateKey, "f").call(this);
-                this.socket.emit('keyExchange', {
-                    recipientId: peerId,
-                    data: JSON.stringify({
-                        messageType: 'offer',
-                        data: this.selfKeyObj.publicKey,
-                    })
-                });
-                __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
-                    __classPrivateFieldGet(this, _WebRtc_setupMediaConnection, "f").call(this, mediaStream);
-                    __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
-                });
-            }
-        });
-        Object.defineProperty(this, "answerMediaConnection", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async (mediaStream) => {
+            __classPrivateFieldGet(this, _WebRtc_currentMediaTracks, "f").forEach(track => {
+                this.peerConnection.removeTrack(track);
+            });
+            __classPrivateFieldSet(this, _WebRtc_currentMediaTracks, [], "f");
+            mediaStream.getTracks().forEach(track => {
+                const sender = this.peerConnection.addTrack(track, mediaStream);
+                __classPrivateFieldGet(this, _WebRtc_currentMediaTracks, "f").push(sender);
+            });
+            await this.restartIce();
+            return true;
+        };
+        this.makeMediaConnection = async (mediaStream, { id: peerId, secret }) => {
+            await __classPrivateFieldGet(this, _WebRtc_generateKey, "f").call(this);
+            this.socket.emit('keyExchange', {
+                recipientId: peerId,
+                data: JSON.stringify({
+                    messageType: 'offer',
+                    data: this.selfKeyObj.publicKey,
+                })
+            });
+            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
                 __classPrivateFieldGet(this, _WebRtc_setupMediaConnection, "f").call(this, mediaStream);
-            }
-        });
+                __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
+            });
+        };
+        this.answerMediaConnection = async (mediaStream) => {
+            __classPrivateFieldGet(this, _WebRtc_setupMediaConnection, "f").call(this, mediaStream);
+        };
         _WebRtc_onDataChannelOpenEvent.set(this, async () => {
             this.dataChannelState = 'open';
             this.eventEmitter.emit('onDataChannel', this.dataChannel);
@@ -231,107 +117,82 @@ class WebRtc {
                 this.eventEmitter.emit('onMessage', decryptedMessage);
             };
         });
-        Object.defineProperty(this, "dataConnection", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async ({ id: peerId, secret }) => {
-                await __classPrivateFieldGet(this, _WebRtc_generateKey, "f").call(this);
-                this.socket.emit('keyExchange', {
-                    recipientId: peerId,
-                    data: JSON.stringify({
-                        messageType: 'offer',
-                        data: this.selfKeyObj.publicKey,
-                    })
+        this.dataConnection = async ({ id: peerId, secret }) => {
+            await __classPrivateFieldGet(this, _WebRtc_generateKey, "f").call(this);
+            this.socket.emit('keyExchange', {
+                recipientId: peerId,
+                data: JSON.stringify({
+                    messageType: 'offer',
+                    data: this.selfKeyObj.publicKey,
+                })
+            });
+            __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
+                this.dataChannel = this.peerConnection.createDataChannel('messageDataChannel');
+                console.log(`Data channel has been created!`);
+                this.dataChannel.onopen = __classPrivateFieldGet(this, _WebRtc_onDataChannelOpenEvent, "f");
+                this.dataChannel.onclose = () => this.dataChannelState = 'close';
+                await __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
+            });
+        };
+        this.generateWebrtcHash = async (hashMethod = 'SHA-256') => {
+            if (this.peerConnection?.currentLocalDescription?.sdp === null || this.peerConnection?.currentRemoteDescription?.sdp === null) {
+                return ({
+                    status: 'error',
+                    errorMessage: 'Values are not available!',
+                    hash: null
                 });
-                __classPrivateFieldGet(this, _WebRtc_internalEventEmitter, "f").on('afterKeyExchange', async () => {
-                    this.dataChannel = this.peerConnection.createDataChannel('messageDataChannel');
-                    console.log(`Data channel has been created!`);
-                    this.dataChannel.onopen = __classPrivateFieldGet(this, _WebRtc_onDataChannelOpenEvent, "f");
-                    this.dataChannel.onclose = () => this.dataChannelState = 'close';
-                    await __classPrivateFieldGet(this, _WebRtc_connect, "f").call(this, peerId, secret);
+            }
+            try {
+                const selfSdp = this.peerConnection.currentLocalDescription.sdp;
+                const remoteSdp = this.peerConnection.currentRemoteDescription.sdp;
+                const selfFingerPrint = selfSdp.slice(selfSdp.indexOf('fingerprint'), selfSdp.indexOf('fingerprint') + 115);
+                const remoteFingerPrint = remoteSdp.slice(remoteSdp.indexOf('fingerprint'), remoteSdp.indexOf('fingerprint') + 115);
+                const selfIdentifier = `${selfFingerPrint}${this.selfKeyObj.publicKey}`;
+                const peerIdentifier = `${remoteFingerPrint}${this.peerPublicKey}`;
+                const text = this.negotiationStarter ? `${selfIdentifier}${peerIdentifier}` : `${peerIdentifier}${selfIdentifier}`;
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text); // encode as (utf-8) Uint8Array
+                const hashBuffer = await crypto.subtle.digest(hashMethod, data); // hash the message
+                const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+                return ({
+                    status: 'successful',
+                    hash: hashHex,
+                    errorMessage: null
                 });
             }
-        });
-        Object.defineProperty(this, "generateWebrtcHash", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async (hashMethod = 'SHA-256') => {
-                if (this.peerConnection?.currentLocalDescription?.sdp === null || this.peerConnection?.currentRemoteDescription?.sdp === null) {
-                    return ({
-                        status: 'error',
-                        errorMessage: 'Values are not available!',
-                        hash: null
-                    });
-                }
-                try {
-                    const selfSdp = this.peerConnection.currentLocalDescription.sdp;
-                    const remoteSdp = this.peerConnection.currentRemoteDescription.sdp;
-                    const selfFingerPrint = selfSdp.slice(selfSdp.indexOf('fingerprint'), selfSdp.indexOf('fingerprint') + 115);
-                    const remoteFingerPrint = remoteSdp.slice(remoteSdp.indexOf('fingerprint'), remoteSdp.indexOf('fingerprint') + 115);
-                    const selfIdentifier = `${selfFingerPrint}${this.selfKeyObj.publicKey}`;
-                    const peerIdentifier = `${remoteFingerPrint}${this.peerPublicKey}`;
-                    const text = this.negotiationStarter ? `${selfIdentifier}${peerIdentifier}` : `${peerIdentifier}${selfIdentifier}`;
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(text); // encode as (utf-8) Uint8Array
-                    const hashBuffer = await crypto.subtle.digest(hashMethod, data); // hash the message
-                    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
-                    return ({
-                        status: 'successful',
-                        hash: hashHex,
-                        errorMessage: null
-                    });
-                }
-                catch {
-                    return ({
-                        status: 'error',
-                        errorMessage: 'something went wrong on the hash digestion!',
-                        hash: null
-                    });
-                }
+            catch {
+                return ({
+                    status: 'error',
+                    errorMessage: 'something went wrong on the hash digestion!',
+                    hash: null
+                });
+            }
+        };
+        this.logDescriptions = async () => {
+            const hashObj = await this.generateWebrtcHash();
+            const descriptions = {
+                hashObj,
+                negotiationStarter: this.negotiationStarter,
+                peerBrowser: this.peerBrowser,
+                canUpdateMedia: this.canUpdateMedia()
+            };
+            this.eventEmitter.emit('descriptionsCompleted', descriptions);
+        };
+        this.sendMessage = (data) => new Promise(async (resolve, reject) => {
+            try {
+                const encryptedMessage = await aesEncrypt(data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
+                this.dataChannel.send(encryptedMessage);
+                resolve('successful');
+            }
+            catch {
+                reject('some thing went wrong!');
             }
         });
-        Object.defineProperty(this, "logDescriptions", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async () => {
-                const hashObj = await this.generateWebrtcHash();
-                const descriptions = {
-                    hashObj,
-                    negotiationStarter: this.negotiationStarter,
-                    peerBrowser: this.peerBrowser,
-                    canUpdateMedia: this.canUpdateMedia()
-                };
-                this.eventEmitter.emit('descriptionsCompleted', descriptions);
-            }
-        });
-        Object.defineProperty(this, "sendMessage", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: (data) => new Promise(async (resolve, reject) => {
-                try {
-                    const encryptedMessage = await aesEncrypt(data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
-                    this.dataChannel.send(encryptedMessage);
-                    resolve('successful');
-                }
-                catch {
-                    reject('some thing went wrong!');
-                }
-            })
-        });
-        Object.defineProperty(this, "close", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async () => {
-                this.socket.disconnect();
-                this.peerConnection.close();
-            }
-        });
+        this.close = async () => {
+            this.socket.disconnect();
+            this.peerConnection.close();
+        };
         this.id = null; // self socket.io server id
         __classPrivateFieldSet(this, _WebRtc_acceptKey, generateRandomHexValue(16), "f"); // self communication secret
         this.recipientId = null; // recipient socket.io server id

@@ -13,59 +13,44 @@ var _EventManager_eventsMap;
 export class EventManager {
     constructor() {
         _EventManager_eventsMap.set(this, void 0);
-        Object.defineProperty(this, "on", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: (eventName, event) => {
-                if (typeof eventName !== 'string' || typeof event !== 'function') {
-                    return false;
-                }
-                try {
-                    __classPrivateFieldGet(this, _EventManager_eventsMap, "f").set(eventName, event);
-                    return true;
-                }
-                catch {
-                    return false;
-                }
+        this.on = (eventName, event) => {
+            if (typeof eventName !== 'string' || typeof event !== 'function') {
+                return false;
             }
-        });
-        Object.defineProperty(this, "emit", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: (eventName, value) => {
-                if (typeof eventName !== 'string') {
-                    return false;
-                }
-                const event = __classPrivateFieldGet(this, _EventManager_eventsMap, "f").get(eventName);
-                if (typeof event === 'function') {
-                    event(value);
-                    return true;
-                }
-                else {
-                    return false;
-                }
+            try {
+                __classPrivateFieldGet(this, _EventManager_eventsMap, "f").set(eventName, event);
+                return true;
             }
-        });
-        Object.defineProperty(this, "asyncEmit", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: async (eventName, value) => {
-                if (typeof eventName !== 'string') {
-                    return false;
-                }
-                const event = __classPrivateFieldGet(this, _EventManager_eventsMap, "f").get(eventName);
-                if (typeof event === 'function') {
-                    await event(value);
-                    return true;
-                }
-                else {
-                    return false;
-                }
+            catch {
+                return false;
             }
-        });
+        };
+        this.emit = (eventName, value) => {
+            if (typeof eventName !== 'string') {
+                return false;
+            }
+            const event = __classPrivateFieldGet(this, _EventManager_eventsMap, "f").get(eventName);
+            if (typeof event === 'function') {
+                event(value);
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        this.asyncEmit = async (eventName, value) => {
+            if (typeof eventName !== 'string') {
+                return false;
+            }
+            const event = __classPrivateFieldGet(this, _EventManager_eventsMap, "f").get(eventName);
+            if (typeof event === 'function') {
+                await event(value);
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
         __classPrivateFieldSet(this, _EventManager_eventsMap, new Map(), "f");
     }
 }
