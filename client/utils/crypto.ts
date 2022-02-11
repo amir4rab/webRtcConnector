@@ -38,11 +38,7 @@ export const aesKeyGenerate = async (): Promise<{ key: string, keyFormat: string
   });
 };
 
-export const aesEncrypt = async ( data: string | object, secretKey: string ): Promise< string > => {
-  const inputData = typeof data === 'object' ? JSON.stringify(data) : data;
-
-  const textEncoder = new TextEncoder();
-  const iv = window.crypto.getRandomValues(new Uint8Array(16));
+export const aesImportKey = async ( secretKey: string ): Promise< CryptoKey > => {
   const secretKeyString = window.atob(secretKey); // decoding base64
 
   const key = await crypto.subtle.importKey(
@@ -50,8 +46,18 @@ export const aesEncrypt = async ( data: string | object, secretKey: string ): Pr
     str2ab(secretKeyString),
     'AES-GCM',
     false,
-    [ 'encrypt' ]
+    [ 'decrypt', 'encrypt' ]
   );
+  return key;
+}
+
+export const aesEncrypt = async ( data: string | object, secretKey: string ): Promise< string > => {
+  const inputData = typeof data === 'object' ? JSON.stringify(data) : data;
+
+  const textEncoder = new TextEncoder();
+  const iv = window.crypto.getRandomValues(new Uint8Array(16));
+
+  const key = await aesImportKey(secretKey);
 
   const encryptedData = await crypto.subtle.encrypt(
     {
@@ -75,6 +81,26 @@ export const aesEncrypt = async ( data: string | object, secretKey: string ): Pr
   return result;
 };
 
+export const aesEncryptFile = async ( data: ArrayBuffer, secretKey: string ): Promise< string > => {
+  const iv = window.crypto.getRandomValues(new Uint8Array(16));
+  const key = await aesImportKey(secretKey);
+
+  const encryptedData = await crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv
+    },
+    key,
+    data
+  );
+
+  const result = JSON.stringify({
+    encryptionIv: ab2str(iv),
+    encryptedData: ab2str(encryptedData),
+  });
+  return result;
+};
+
 export const aesDecrypt = async ( encryptedDataString: string, secretKey: string ): Promise< string > => {
   const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
 
@@ -86,15 +112,7 @@ export const aesDecrypt = async ( encryptedDataString: string, secretKey: string
   const encryptedDataStr = window.atob(encryptedData);
   const encryptedDataAb = str2ab(encryptedDataStr)
 
-  const secretKeyString = window.atob(secretKey); // decoding base64
-
-  const key = await crypto.subtle.importKey(
-    'raw',
-    str2ab(secretKeyString),
-    'AES-GCM',
-    false,
-    [ 'decrypt' ]
-  );
+  const key = await aesImportKey(secretKey);
 
   const decryptedData = await crypto.subtle.decrypt(
     {
@@ -106,6 +124,22 @@ export const aesDecrypt = async ( encryptedDataString: string, secretKey: string
   );
 
   return textDecoder.decode(decryptedData);
+};
+
+export const aesDecryptFile = async ( encryptedDataString: string, secretKey: string ): Promise< string > => {
+  const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
+
+  const key = await aesImportKey(secretKey);
+  const decryptedData = await crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv: str2ab(encryptionIv)
+    },
+    key,
+    str2ab(encryptedData)
+  );
+
+  return decryptedData;
 };
 
 export const ecdhGenerateKey = async (): Promise<{ publicKey: string, publicKeyFormat: string, privateKey: string, privateKeyFormat: string }> => {

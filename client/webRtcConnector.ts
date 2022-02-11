@@ -1,10 +1,12 @@
+// third party libraries imports //
 import { io, Socket } from 'socket.io-client';
-// import { EventEmitter, Listener } from 'events';
 import { EventManager } from './utils/eventManager';
 import adapter from 'webrtc-adapter';
 
-import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto';
+// util imports //
+import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey, aesDecryptFile, aesEncryptFile } from './utils/crypto';
 import generateRandomHexValue from './utils/generateRandomHexValue'
+
 const rtcConfiguration = { 
   iceServers: [
     {
@@ -325,11 +327,10 @@ class WebRtc {
     this.dataChannelState = 'open'
     this.eventEmitter.emit('onDataChannel', this.dataChannel);
     this.dataChannel!.onmessage = async message => {
-      const decryptedMessage = await aesDecrypt(
-        message.data,
-        this.#sharedSecret!
-      )
-      this.eventEmitter.emit( 'onMessage', decryptedMessage );
+      const { type, encryptedMessage } = JSON.parse(message.data);
+      const decryptedMessage = type === 'string' ? 
+        await aesDecrypt( encryptedMessage, this.#sharedSecret!) : await aesDecryptFile( encryptedMessage, this.#sharedSecret!)
+      this.eventEmitter.emit( 'onMessage', { data: decryptedMessage, type } );
     };
   };
 
@@ -406,10 +407,15 @@ class WebRtc {
     this.eventEmitter.emit('descriptionsCompleted', descriptions);
   };
 
-  sendMessage = ( data: string ): Promise<string> => new Promise( async ( resolve, reject ) => {
+  sendMessage = ( data: string | ArrayBuffer, messageType: 'data' | 'string' = 'string' ): Promise<string> => new Promise( async ( resolve, reject ) => {
     try {
-      const encryptedMessage = await aesEncrypt(data, this.#sharedSecret!);
-      this.dataChannel!.send(encryptedMessage)
+      let encryptedMessage;
+      if ( messageType === 'string' ) {
+        encryptedMessage = await aesEncrypt(data, this.#sharedSecret!)
+      } else if ( data instanceof ArrayBuffer ) {
+        encryptedMessage = await aesEncryptFile(data, this.#sharedSecret!);
+      }
+      this.dataChannel!.send(JSON.stringify({ encryptedMessage, type: messageType }))
       resolve('successful')
     } catch {
       reject('some thing went wrong!');

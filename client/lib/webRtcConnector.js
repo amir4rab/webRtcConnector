@@ -10,11 +10,12 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _WebRtc_acceptKey, _WebRtc_sharedSecret, _WebRtc_internalEventEmitter, _WebRtc_currentMediaTracks, _WebRtc_recipientSecret, _WebRtc_generateKey, _WebRtc_afterKeyExchange, _WebRtc_connect, _WebRtc_setupMediaConnection, _WebRtc_onDataChannelOpenEvent;
+// third party libraries imports //
 import { io } from 'socket.io-client';
-// import { EventEmitter, Listener } from 'events';
 import { EventManager } from './utils/eventManager';
 import adapter from 'webrtc-adapter';
-import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto';
+// util imports //
+import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey, aesDecryptFile, aesEncryptFile } from './utils/crypto';
 import generateRandomHexValue from './utils/generateRandomHexValue';
 const rtcConfiguration = {
     iceServers: [
@@ -113,8 +114,10 @@ class WebRtc {
             this.dataChannelState = 'open';
             this.eventEmitter.emit('onDataChannel', this.dataChannel);
             this.dataChannel.onmessage = async (message) => {
-                const decryptedMessage = await aesDecrypt(message.data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
-                this.eventEmitter.emit('onMessage', decryptedMessage);
+                const { type, encryptedMessage } = JSON.parse(message.data);
+                const decryptedMessage = type === 'string' ?
+                    await aesDecrypt(encryptedMessage, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f")) : await aesDecryptFile(encryptedMessage, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
+                this.eventEmitter.emit('onMessage', { data: decryptedMessage, type });
             };
         });
         this.dataConnection = async ({ id: peerId, secret }) => {
@@ -179,10 +182,16 @@ class WebRtc {
             };
             this.eventEmitter.emit('descriptionsCompleted', descriptions);
         };
-        this.sendMessage = (data) => new Promise(async (resolve, reject) => {
+        this.sendMessage = (data, messageType = 'string') => new Promise(async (resolve, reject) => {
             try {
-                const encryptedMessage = await aesEncrypt(data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
-                this.dataChannel.send(encryptedMessage);
+                let encryptedMessage;
+                if (messageType === 'string') {
+                    encryptedMessage = await aesEncrypt(data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
+                }
+                else if (data instanceof ArrayBuffer) {
+                    encryptedMessage = await aesEncryptFile(data, __classPrivateFieldGet(this, _WebRtc_sharedSecret, "f"));
+                }
+                this.dataChannel.send(JSON.stringify({ encryptedMessage, type: messageType }));
                 resolve('successful');
             }
             catch {

@@ -4,8 +4,11 @@ export declare const aesKeyGenerate: () => Promise<{
     key: string;
     keyFormat: string;
 }>;
+export declare const aesImportKey: (secretKey: string) => Promise<CryptoKey>;
 export declare const aesEncrypt: (data: string | object, secretKey: string) => Promise<string>;
+export declare const aesEncryptFile: (data: ArrayBuffer, secretKey: string) => Promise<string>;
 export declare const aesDecrypt: (encryptedDataString: string, secretKey: string) => Promise<string>;
+export declare const aesDecryptFile: (encryptedDataString: string, secretKey: string) => Promise<string>;
 export declare const ecdhGenerateKey: () => Promise<{
     publicKey: string;
     publicKeyFormat: string;
