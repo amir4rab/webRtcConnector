@@ -48,7 +48,7 @@ declare class WebRtc {
         errorMessage: null | string;
     }>;
     logDescriptions: () => Promise<void>;
-    sendMessage: (data: string | ArrayBuffer, messageType?: 'data' | 'string') => Promise<string>;
+    sendMessage: (data: string | Object) => Promise<string>;
     close: () => Promise<void>;
 }
 export default WebRtc;

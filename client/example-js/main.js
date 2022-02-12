@@ -61,7 +61,7 @@ webRtc.on('descriptionsCompleted', async ({ hashObj }) => {
   console.log(hashObj.hash)
 });
 
-webRtc.on('onMessage', ({ data }) => {
+webRtc.on('onMessage', ( data ) => {
   inBox.value = data
 });
 

@@ -49,41 +49,21 @@ export const aesEncrypt = async (data, secretKey) => {
     });
     return result;
 };
-export const aesEncryptFile = async (data, secretKey) => {
-    const iv = window.crypto.getRandomValues(new Uint8Array(16));
-    const key = await aesImportKey(secretKey);
-    const encryptedData = await crypto.subtle.encrypt({
-        name: 'AES-GCM',
-        iv
-    }, key, data);
-    const result = JSON.stringify({
-        encryptionIv: ab2str(iv),
-        encryptedData: ab2str(encryptedData),
-    });
-    return result;
-};
 export const aesDecrypt = async (encryptedDataString, secretKey) => {
     const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
+    console.log({ encryptionIv, encryptedData });
     const textDecoder = new TextDecoder();
     const ivStr = window.atob(encryptionIv);
     const ivAb = str2ab(ivStr);
     const encryptedDataStr = window.atob(encryptedData);
     const encryptedDataAb = str2ab(encryptedDataStr);
     const key = await aesImportKey(secretKey);
+    ;
     const decryptedData = await crypto.subtle.decrypt({
         name: 'AES-GCM',
         iv: ivAb
     }, key, encryptedDataAb);
     return textDecoder.decode(decryptedData);
-};
-export const aesDecryptFile = async (encryptedDataString, secretKey) => {
-    const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
-    const key = await aesImportKey(secretKey);
-    const decryptedData = await crypto.subtle.decrypt({
-        name: 'AES-GCM',
-        iv: str2ab(encryptionIv)
-    }, key, str2ab(encryptedData));
-    return decryptedData;
 };
 export const ecdhGenerateKey = async () => {
     const keyPair = await crypto.subtle.generateKey({
