@@ -51,7 +51,6 @@ export const aesEncrypt = async (data, secretKey) => {
 };
 export const aesDecrypt = async (encryptedDataString, secretKey) => {
     const { encryptionIv, encryptedData } = JSON.parse(encryptedDataString);
-    console.log({ encryptionIv, encryptedData });
     const textDecoder = new TextDecoder();
     const ivStr = window.atob(encryptionIv);
     const ivAb = str2ab(ivStr);

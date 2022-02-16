@@ -102,10 +102,9 @@
     // "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "exclude": [
-    "example-js/*",
-    "./example-ts/*",
-    "./lib/*",
-    "./js/*",
+    "example/*",
+    "lib/*",
+    "js/*",
     "node_modules"
   ]
 }

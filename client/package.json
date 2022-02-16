@@ -1,6 +1,6 @@
 {
   "name": "@amir4rab/web-rtc-connector-client",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "type": "module",
   "description": "Simple Web Rtc Connector",
   "module": "./lib/webRtcConnector",

@@ -1,44 +1,47 @@
-import WebRtc from '../lib/webRtcConnector';
+import WebRtc from '../../../lib/webRtcConnector';
+import adapter from 'webrtc-adapter';
 
-document.getElementById('reloadButton').addEventListener('click', _ => location.reload());
-const displayReloadPage = _ => {
-  document.getElementById('activePage').style='display: none';
-  document.getElementById('reloadPage').style='display: block';
+console.log(adapter);
+
+document.getElementById('reloadButton')!.addEventListener('click', () => location.reload());
+const displayReloadPage = () => {
+  document.getElementById('activePage')?.setAttribute('style', 'display: none');
+  document.getElementById('reloadPage')?.setAttribute('style', 'display: block');
 };
 
-const displayAfterConnectionControls = _ => {
-  document.getElementById('afterConnectionBox').style = 'display: block'
+const displayAfterConnectionControls = () => {
+  document.getElementById('afterConnectionBox')?.setAttribute('style','display: block');
 }
 
 
 //** global query selectors **// 
-const selfId = document.getElementById('selfId');
-const selfSecret = document.getElementById('selfSecret');
-const peerId = document.getElementById('peerId');
-const peerSecret = document.getElementById('peerSecret');
+const selfId = document.getElementById('selfId') as HTMLInputElement;
+const selfSecret = document.getElementById('selfSecret') as HTMLInputElement;
+const peerId = document.getElementById('peerId') as HTMLInputElement;
+const peerSecret = document.getElementById('peerSecret') as HTMLInputElement;
 
 //** Datachannel query selectors **// 
-const inBox = document.getElementById('inBox');
-const messageInput = document.getElementById('messageInput');
-const dataChanelBox = document.getElementById('dataChanelBox');
-const recipientInputsBox = document.getElementById('recipientInputsBox');
+const inBox = document.getElementById('inBox') as HTMLInputElement;
+const messageInput = document.getElementById('messageInput') as HTMLInputElement;
+const dataChanelBox = document.getElementById('dataChanelBox') as HTMLInputElement;
+const recipientInputsBox = document.getElementById('recipientInputsBox') as HTMLInputElement;
 
 //** Media stream query selectors **// 
-const streamsBox = document.getElementById('streamsBox');
-const selfVideo = document.getElementById('selfVideo');
-selfVideo.onloadeddata = _ => {
+const streamsBox = document.getElementById('streamsBox') as HTMLElement;
+const selfVideo = document.getElementById('selfVideo') as HTMLVideoElement;
+selfVideo.onloadeddata = () => {
   selfVideo.play();
 };
-const peerVideo = document.getElementById('peerVideo');
-peerVideo.onloadeddata = _ => {
+const peerVideo = document.getElementById('peerVideo') as HTMLVideoElement;
+peerVideo.onloadeddata = () => {
   peerVideo.play();
 };
 
-let dataChannelRef;
+let dataChannelRef: RTCDataChannel;
 
-const webRtc = new WebRtc({ serverUrl: 'http://localhost:5001' });
+const webRtc = new WebRtc({ serverUrl: 'http://localhost:5001/', connectionEvent: null, onPeerConnection: null });
 
-webRtc.on( "onConnection", data => {
+webRtc.on( "onConnection", ( data ) => {
   console.log(data)
   selfId.value = data.id;
   selfSecret.value = data.secret;
@@ -46,8 +49,8 @@ webRtc.on( "onConnection", data => {
 
 webRtc.on('onDataChannel', dataChannel => {
   console.log('DataChannel has been received!')
-  dataChanelBox.style = `display: block`;
-  recipientInputsBox.style = 'display: none';
+  dataChanelBox.setAttribute( 'style', `display: block` );
+  recipientInputsBox.setAttribute( 'style', 'display: none' );
   dataChannelRef = dataChannel;
 });
 
@@ -61,41 +64,41 @@ webRtc.on('descriptionsCompleted', async ({ hashObj }) => {
   console.log(hashObj.hash)
 });
 
-webRtc.on('onMessage', ( data ) => {
+webRtc.on('onMessage', data => {
   inBox.value = data
 });
 
-webRtc.on('onClose', _ => {
+webRtc.on('onClose', () => {
   displayReloadPage();
 });
 
-webRtc.on('onError', _ => {
+webRtc.on('onError', () => {
   displayReloadPage();
 })
 
 //** Datachannel Managements **//
 
-const startDataChannel = _ => {
+const startDataChannel = () => {
   console.log({ id: peerId.value, secret: peerSecret.value})
   webRtc.dataConnection({ id: peerId.value, secret: peerSecret.value});
   peerId.value= '';
   peerSecret.value= '';
 };
-document.getElementById('makeDataChannel').addEventListener('click', startDataChannel);
+document.getElementById('makeDataChannel')!.addEventListener('click', startDataChannel);
 
 const sendMessageEvent = () => {
   webRtc.sendMessage(messageInput.value);
   messageInput.value = '';
 };
-document.getElementById('sendMessage').addEventListener('click', sendMessageEvent);
+document.getElementById('sendMessage')!.addEventListener('click', sendMessageEvent);
 
 
 //** Media Managements **//
 
-let mediaStreamRef = null;
+let mediaStreamRef: MediaStream | null = null;
 const stopCurrentTracks = async () => {
   if ( mediaStreamRef === null ) return;
-  const streams = await mediaStreamRef.getTracks();
+  const streams = mediaStreamRef.getTracks();
   streams.forEach(track => track.stop());
   mediaStreamRef = null;
 }
@@ -106,8 +109,8 @@ const getAudioMedia = async () => { //** only audio track **//
   let stream = null;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-    selfVideo.srcObjet = stream;
-    selfVideo.onloadeddata = _ => {
+    selfVideo.srcObject = stream;
+    selfVideo.onloadeddata = () => {
       selfVideo.play();
     };
   } catch {
@@ -128,8 +131,8 @@ const getAllMedia = async ( disabledByDefault = false ) => { //** camera and aud
         track.enabled = false;
       })
     };
-    selfVideo.srcObjet = stream;
-    selfVideo.onloadeddata = _ => {
+    selfVideo.srcObject = stream;
+    selfVideo.onloadeddata = () => {
       selfVideo.play();
     };
   } catch {
@@ -144,9 +147,9 @@ const getDisplayMedia = async () => { //** screen cast track **//
 
   let stream = null
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "always" } });
-    selfVideo.srcObjet = stream;
-    selfVideo.onloadeddata = _ => {
+    stream = await navigator.mediaDevices.getDisplayMedia();
+    selfVideo.srcObject = stream;
+    selfVideo.onloadeddata = () => {
       selfVideo.play();
     };
   } catch {
@@ -164,9 +167,9 @@ const answerCall = async () => {
   }
   console.log(mediaStreamRef);
   await webRtc.answerMediaConnection(mediaStreamRef);
-  streamsBox.style = 'display: block';
+  streamsBox.setAttribute( 'style', 'display: block');
 };
-document.getElementById('answerCall').addEventListener('click', answerCall);
+document.getElementById('answerCall')!.addEventListener('click', answerCall);
 
 
 const makeCall = async () => {
@@ -178,9 +181,9 @@ const makeCall = async () => {
   await webRtc.makeMediaConnection(mediaStreamRef, { id: peerId.value, secret: peerSecret.value });
   peerId.value= '';
   peerSecret.value= '';
-  streamsBox.style = 'display: block';
+  streamsBox.setAttribute( 'style', 'display: block' );
 }
-document.getElementById('makeCall').addEventListener('click', makeCall);
+document.getElementById('makeCall')!.addEventListener('click', makeCall);
 
 const audioOnly = async () => {
   await getAudioMedia();
@@ -190,7 +193,7 @@ const audioOnly = async () => {
   }
   await webRtc.updateMedia(mediaStreamRef);
 }
-document.getElementById('audioOnly').addEventListener('click', audioOnly);
+document.getElementById('audioOnly')!.addEventListener('click', audioOnly);
 
 const displayOn = async () => {
   await getDisplayMedia();
@@ -200,7 +203,7 @@ const displayOn = async () => {
   }
   await webRtc.updateMedia(mediaStreamRef);
 }
-document.getElementById('displayOn').addEventListener('click', displayOn);
+document.getElementById('displayOn')!.addEventListener('click', displayOn);
 
 
 const cameraOn = async () => {
@@ -212,11 +215,11 @@ const cameraOn = async () => {
   await webRtc.updateMedia(mediaStreamRef);
   // await webRtc.updateMedia();
 }
-document.getElementById('cameraOn').addEventListener('click', cameraOn);
+document.getElementById('cameraOn')!.addEventListener('click', cameraOn);
 
-document.getElementById('logDescriptions').addEventListener('click', webRtc.logDescriptions);
+document.getElementById('logDescriptions')!.addEventListener('click', webRtc.logDescriptions);
 
-document.getElementById('closeConnection').addEventListener('click', async _ => {
+document.getElementById('closeConnection')!.addEventListener('click', async () => {
   await webRtc.close();
   displayReloadPage();
 })
