@@ -10,10 +10,10 @@ import generateRandomHexValue from './utils/generateRandomHexValue'
 const rtcConfiguration = { 
   iceServers: [
     {
-      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
+      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun.l.google.com:19302' ],
     },
   ],
-  iceCandidatePoolSize: 10,
+  iceCandidatePoolSize: 20,
 };
 
 const notInitWarn = () => console.warn('Received RTCSessionDescription before RTCPeerConnection initialization!');
@@ -411,7 +411,7 @@ class WebRtc {
       this.dataChannel!.send(encryptedMessage)
       resolve('successful')
     } catch {
-      reject('some thing went wrong!');
+      reject('some thing went wrong!'); 
     }
   });
 
