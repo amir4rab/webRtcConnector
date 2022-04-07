@@ -51,3 +51,4 @@ doc/dist-ssr
 doc/*.local
 doc/.gitignore
 # package-lock.json
+trash/*

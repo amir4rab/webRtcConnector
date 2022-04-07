@@ -1,34 +1,64 @@
 {
-  "name": "@amir4rab/web-rtc-connector-client",
-  "version": "0.7.5",
-  "type": "module",
-  "description": "Simple Web Rtc Connector",
-  "module": "./lib/webRtcConnector",
-  "types": "./lib/webRtcConnector.d.ts",
-  "license": "MPL-2.0 License",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
   "dependencies": {
     "@types/socket.io-client": "^3.0.0",
+    "@types/webrtc": "^0.0.31",
     "socket.io-client": "^4.4.0",
     "webrtc-adapter": "^8.1.1"
   },
-  "bugs": {
-    "url": "https://github.com/amir4rab/webRtcConnector/issues"
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
   },
-  "publishConfig": {
-    "access": "public",
-    "branches": [
-      "master"
-    ]
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
   },
+  "name": "@amir4rab/web-rtc-connector-client",
+  "author": "amir4rab",
   "homepage": "https://github.com/amir4rab/webRtcConnector/tree/main/client",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/amir4rab/webRtcConnector.git"
   },
+  "module": "dist/web-rtc-connector-client.esm.js",
+  "size-limit": [
+    {
+      "path": "dist/web-rtc-connector-client.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/web-rtc-connector-client.esm.js",
+      "limit": "10 KB"
+    }
+  ],
   "devDependencies": {
-    "typescript": "^4.5.5"
-  },
-  "scripts": {
-    "build": "tsc -b"
+    "@size-limit/preset-small-lib": "^7.0.8",
+    "husky": "^7.0.4",
+    "size-limit": "^7.0.8",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.6.3"
   }
 }

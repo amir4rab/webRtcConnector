@@ -1,111 +1,103 @@
-# WebRtc Connector Client
+# TSDX User Guide
 
-### <p class="warning">Waring: This project hasn't been audited by security researchers, therefore please don't use it in Production environment<p>
+Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
 
-### Installing npm [package](https://www.npmjs.com/package/@amir4rab/web-rtc-connector-client):
+> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+
+> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
+
+## Commands
+
+TSDX scaffolds your new library inside `/src`.
+
+To run TSDX, use:
+
 ```bash
-npm install @amir4rab/web-rtc-connector-client@latest
+npm start # or yarn start
 ```
 
-### Instantiating an instance:
-make sure that your [signaling server](https://github.com/amir4rab/webRtcConnector/tree/main/server) is online then continue with WebRtc Connector Client
-```javascript
-const webRtc = new WebRtc({ serverUrl: 'your signaling server url' });
+This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+
+To do a one-off build, use `npm run build` or `yarn build`.
+
+To run tests, use `npm test` or `yarn test`.
+
+## Configuration
+
+Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
+
+### Jest
+
+Jest tests are set up to run with `npm test` or `yarn test`.
+
+### Bundle Analysis
+
+[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
+
+#### Setup Files
+
+This is the folder structure we set up for you:
+
+```txt
+/src
+  index.tsx       # EDIT THIS
+/test
+  blah.test.tsx   # EDIT THIS
+.gitignore
+package.json
+README.md         # EDIT THIS
+tsconfig.json
 ```
 
-### Getting WebRtc instance Details:
-your id is exposed to the server but secret isn't, and it has been generated automatically by the client. you should send these two items to the other peer.
-```javascript
-webRtc.on( "onConnection", ({ id, secret }) => {
-  console.log(id, secret)
-});
-``` 
+### Rollup
 
-### WebRtc Data-channel: 
-#### Making a data-channel
-```javascript
-webRtc.dataConnection({ 
-  id: 'other peer ID',
-  secret: 'other peer Secret'
-});
-```
-#### Events
-```javascript
-webRtc.on( 'onDataChannel', ( dataChannel ) => {
-  // "onDataChannel" will be called after dataChannel initialization
-  // you can update UI of your web-app 
-  // eg: connection state: "Connected"
-});
+TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
 
-webRtc.on( 'onMessage', message => {
-  // "onMessage" will be called, when receiving a message from WebRtc Peer
-});
-```
-#### Sending message
-```javascript
-// this function should only be called after Data-channel has been initialization
-webRtc.sendMessage('your message');
-```
+### TypeScript
 
-### WebRtc Media Connection:
-#### Answering call
-For Media connection, first pair need to be ready to answer calls
-```javascript
-const answerCall = async _ => {
-  mediaStream = stream = await navigator.mediaDevices.getUserMedia('constraints');
-  await webRtc.answerMediaConnection(mediaStream);
-};
-```
-#### Making a call
-```javascript
-const makeCall = async _ => {
-  mediaStream = stream = await navigator.mediaDevices.getUserMedia('constraints');
-  await webRtc.makeMediaConnection( 
-    mediaStream, 
-    { id: 'other peer ID', secret: 'other peer Secret' }
-  );
-};
-```
-#### Events
-```javascript
-webRtc.on( 'onStream', ( remoteStream ) => {
-  // "onStream" will be Called after receiving Remote stream
-  // you can update UI of your web-app 
-  // eg: peerVideo.srcObject = remoteStream;
-});
-```
-#### Functions
-to update WebRtc tracks you can pass a new media stream to updateMedia function.
-```javascript
-const updateMedia = async _ => {
-  await webRtc.updateMedia(mediaStream);
+`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
+
+## Continuous Integration
+
+### GitHub Actions
+
+Two actions are added by default:
+
+- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
+- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
+
+## Optimizations
+
+Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
+
+```js
+// ./types/index.d.ts
+declare var __DEV__: boolean;
+
+// inside your code...
+if (__DEV__) {
+  console.log('foo');
 }
 ```
 
-### Functions:
+You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
 
-#### Closing Connection
-```javascript
-await webRtc.close();
-```
+## Module Formats
 
-### Events:
-#### Checking Call Security
-```javascript
-webRtc.on( 'descriptionsCompleted', async ({ hashObj }) => {
-  // console.log( hashObj.hash )
-  // to users can check if their hashes are equal
-});
-```
-#### Call-end event
-```javascript
-webRtc.on( 'onClose', _ => {
-  // "onClose" will be called when connection has been closed!
-});
-```
-#### Error event
-```javascript
-webRtc.on( 'onError', _ => {
-  // "onError" will be called when connection has been failed!
-});
-```
+CJS, ESModules, and UMD module formats are supported.
+
+The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+
+## Named Exports
+
+Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+
+## Including Styles
+
+There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+
+For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+
+## Publishing to NPM
+
+We recommend using [np](https://github.com/sindresorhus/np).

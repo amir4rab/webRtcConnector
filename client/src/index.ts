@@ -277,7 +277,8 @@ class WebRtc {
   };
 
   restartIce = async (): Promise<void> => {
-    this.peerConnection.restartIce();
+    //@ts-ignore
+    this.peerConnection?.restartIce();
     await this.#connect( this.recipientId!, this.#recipientSecret! );
   }
 
