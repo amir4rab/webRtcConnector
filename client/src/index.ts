@@ -4,7 +4,7 @@ import { EventManager } from './utils/eventManager';
 import adapter from 'webrtc-adapter';
 
 // util imports //
-import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from './utils/crypto';
+import { aesEncrypt, aesDecrypt, ecdhGenerateKey, ecdhSecretKey } from '@amir4rab/crypto';
 import generateRandomHexValue from './utils/generateRandomHexValue'
 
 const rtcConfiguration = { 
@@ -36,7 +36,7 @@ class WebRtc {
   dataChannel: RTCDataChannel | null;
   dataChannelState: 'close' | 'open';
   remoteStream: MediaStream | null;
-  selfKeyObj: { publicKey: string, publicKeyFormat: string, privateKey: string, privateKeyFormat: string } | null;
+  selfKeyObj: { publicKey: string, privateKey: string } | null;
   peerPublicKey: string | null;
   constructor({ serverUrl ,connectionEvent = null, onPeerConnection= null }: { serverUrl: string ,connectionEvent: Function | null, onPeerConnection: Function | null }){
     this.id = null; // self socket.io server id
@@ -328,8 +328,11 @@ class WebRtc {
     this.dataChannelState = 'open'
     this.eventEmitter.emit('onDataChannel', this.dataChannel);
     this.dataChannel!.onmessage = async message => {
-      const decryptedMessage =  await aesDecrypt( message.data, this.#sharedSecret!)
-      this.eventEmitter.emit( 'onMessage', decryptedMessage );
+      if ( typeof message.data !== 'string' ) {
+        console.error('Received false information from peer!');
+        return;
+      }
+      this.eventEmitter.emit( 'onMessage', message.data );
     };
   };
 
@@ -406,10 +409,10 @@ class WebRtc {
     this.eventEmitter.emit('descriptionsCompleted', descriptions);
   };
 
-  sendMessage = ( data: string | Object ): Promise<string> => new Promise( async ( resolve, reject ) => {
+  sendMessage = ( data: string | object ): Promise<string> => new Promise( async ( resolve, reject ) => {
     try {
-      let encryptedMessage = await aesEncrypt(data, this.#sharedSecret!)
-      this.dataChannel!.send(encryptedMessage)
+      const messageData = typeof data === 'string' ? data : JSON.stringify(data); 
+      this.dataChannel!.send(messageData)
       resolve('successful')
     } catch {
       reject('some thing went wrong!'); 
